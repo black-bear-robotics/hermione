@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+<node name="vision_pub" pkg="pkg_main" type="vision_pub.py"/>
+
+</launch>

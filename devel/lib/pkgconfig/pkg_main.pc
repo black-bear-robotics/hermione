@@ -1,0 +1,8 @@
+prefix=/home/nvidia/hermione_ws/devel
+
+Name: pkg_main
+Description: Description of pkg_main
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/nvidia/hermione_ws/devel/lib 
+Requires: 

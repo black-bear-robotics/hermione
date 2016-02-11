@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/nvidia/hermione_ws/install/setup.sh
