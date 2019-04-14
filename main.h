@@ -5,6 +5,6 @@ namespace H {
 	public:
 		void do_nothing();
 		void test_maestro();
-		void test_mynteye();
+		void test_mynteye(int argc, char *argv[]);
 	};
 }
