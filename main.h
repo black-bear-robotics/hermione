@@ -3,7 +3,8 @@
 #include <string>
 #include <opencv2/core/core.hpp>
 #include "mynteye/types.h"
-
+// MAESTRO
+#include "include/Maestro-lib/include/RPMSerialInterface.h"
 namespace H {
 	
 	class CVPainter {
@@ -40,5 +41,7 @@ namespace H {
 		void do_nothing();
 		void test_maestro();
 		void test_mynteye(int argc, char *argv[]);
+		void manual_control();
+		void tank_drive(int *axis, RPM::SerialInterface* serialInterface);
 	};
 }

@@ -1,5 +1,5 @@
 INC = -I/usr/local/include
-LIB = ./libmaestro.a -lmynteye
+LIB = ./include/libmaestro.a -lmynteye
 CFLAGS = -Wall -std=c++11 
 
 all: main

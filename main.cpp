@@ -8,8 +8,12 @@
 #include <time.h>
 #include <sys/time.h>
 
+// For Joystick
+#include <fcntl.h>
+#include <sys/ioctl.h>
+
 // MAESTRO
-#include "Maestro-lib/include/RPMSerialInterface.h"
+#include "include/Maestro-lib/include/RPMSerialInterface.h"
 
 // MYNT Eye
 #include <opencv2/highgui/highgui.hpp>
@@ -28,6 +32,11 @@
 #include <memory>
 #include <utility>
 
+// Joystick
+#include <linux/joystick.h>
+
+// XBox Controller Port
+#define JOY_DEV "/dev/input/js1"
 
 #define FONT_FACE cv::FONT_HERSHEY_PLAIN
 #define FONT_SCALE 1
@@ -201,10 +210,99 @@ cv::Rect CVPainter::DrawText(
 
 int main(int argc, char *argv[]) {
 	main_class mc;
-	mc.do_nothing();
-	mc.test_maestro();
-	mc.test_mynteye(argc, argv);
+	//mc.do_nothing();
+	//mc.test_maestro();
+	//mc.test_mynteye(argc, argv);
+
+	mc.manual_control();
 	return 0;
+}
+
+void main_class::manual_control() {
+	std::string portName;
+
+	portName = "/dev/ttyACM0";
+
+	unsigned char numChannels = 6; 
+	
+	std::cout << "Opening Pololu Maestro on serial interface \"" << portName << "\"..." << std::endl;
+	std::string errorMessage;
+	RPM::SerialInterface* serialInterface = RPM::SerialInterface::createSerialInterface(portName, 9600, &errorMessage );
+	if ( !serialInterface )
+		std::cerr << "Error: " << errorMessage << std::endl;
+
+	
+	int joy_fd, *axis=NULL, num_of_axis=0, num_of_buttons=0, x;
+	char *button=NULL, name_of_joystick[80];
+	struct js_event js;
+
+	if( ( joy_fd = open( JOY_DEV , O_RDONLY)) == -1 )
+	{
+		printf( "Couldn't open joystick\n" );
+		return;
+	}
+
+	ioctl( joy_fd, JSIOCGAXES, &num_of_axis );
+	ioctl( joy_fd, JSIOCGBUTTONS, &num_of_buttons );
+	ioctl( joy_fd, JSIOCGNAME(80), &name_of_joystick );
+
+	axis = (int *) calloc( num_of_axis, sizeof( int ) );
+	button = (char *) calloc( num_of_buttons, sizeof( char ) );
+
+	printf("Joystick detected: %s\n\t%d axis\n\t%d buttons\n\n"
+		, name_of_joystick
+		, num_of_axis
+		, num_of_buttons );
+
+	fcntl( joy_fd, F_SETFL, O_NONBLOCK );	/* use non-blocking mode */
+
+	while( 1 ) 	/* infinite loop */
+	{
+
+			/* read the joystick state */
+		read(joy_fd, &js, sizeof(struct js_event));
+		
+			/* see what to do with the event */
+		switch (js.type & ~JS_EVENT_INIT)
+		{
+			case JS_EVENT_AXIS:
+				axis   [ js.number ] = js.value;
+				this->tank_drive(axis,serialInterface);
+				break;
+			case JS_EVENT_BUTTON:
+				button [ js.number ] = js.value;
+				break;
+		}
+
+			/* print the results 
+		printf( "X: %6d  Y: %6d  ", axis[0], axis[1] );
+		
+		if( num_of_axis > 2 )
+			printf("Z: %6d  ", axis[2] );
+			
+		if( num_of_axis > 3 )
+			printf("R: %6d  ", axis[3] );
+			
+		for( x=0 ; x<num_of_buttons ; ++x )
+			printf("B%d: %d  ", x, button[x] );
+
+		printf("  \r");
+		fflush(stdout);*/
+	}
+
+}
+
+int xbox2maestro(int raw) {
+	return int((double(-raw/2.0 + 32767)/65534)*4032 + 3968);
+}
+
+void main_class::tank_drive(int *axis, RPM::SerialInterface* serialInterface) {
+	int servoL = xbox2maestro(axis[1]); // left stick y	
+	int servoR = xbox2maestro(axis[3]); // right stick y
+	
+	serialInterface->setTargetCP( 0, servoL );
+	serialInterface->setTargetCP( 1, servoR );
+	printf("L:%d,\tR:%d\n",servoL,servoR);
 }
 
 void main_class::do_nothing()
