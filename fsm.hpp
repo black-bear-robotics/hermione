@@ -92,7 +92,7 @@ class Depositing : public FSMState {
         FSM *fsm;
         bool done;
     public:
-        void Depositing::construct(FSM *fsm) {
+        void construct(FSM *fsm) {
             this->fsm = fsm;
             done = false;
         }
@@ -107,7 +107,6 @@ class Digging : public FSMState {
         bool done;
     public:
         void construct(FSM *fsm) {
-            void Digging::construct(FSM *fsm) {
             this->fsm = fsm;
             done = false;
         }

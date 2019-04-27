@@ -25,7 +25,9 @@ void FSM::update() {
 
 void FSM::pop() {
     if (stack.size() > 0) {
+        FSMState* state = FSM::current();
         stack.pop_back();
+        free(state);
     }
 }
 
